@@ -1,11 +1,12 @@
 package example.hibernatesearch.entity;
 
+import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +20,7 @@ import org.hibernate.search.annotations.Indexed;
 @Data
 @Indexed
 @EqualsAndHashCode(of = "id")
-public class BookEntity {
+public class AuthorEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private long id;
@@ -27,8 +28,8 @@ public class BookEntity {
   @Field(analyze = Analyze.NO)
   @Facet
   @Column
-  private String title;
+  private String name;
 
-  @ManyToOne
-  private AuthorEntity author;
+  @OneToMany
+  private Set<BookEntity> books;
 }

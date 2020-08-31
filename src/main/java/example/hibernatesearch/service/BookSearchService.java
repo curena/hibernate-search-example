@@ -11,7 +11,7 @@ import org.hibernate.search.query.dsl.QueryBuilder;
 import org.springframework.stereotype.Service;
 
 @Service
-public class SearchService {
+public class BookSearchService {
   private EntityManagerFactory entityManagerFactory;
 
   public List<?> searchFor(String query) {
