@@ -7,6 +7,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ import org.hibernate.search.annotations.Indexed;
 @Data
 @Indexed
 @EqualsAndHashCode(of = "id")
+@Table(name = "author")
 public class AuthorEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -32,4 +34,9 @@ public class AuthorEntity {
 
   @OneToMany
   private Set<BookEntity> books;
+
+  @Override
+  public String toString() {
+    return this.name;
+  }
 }
