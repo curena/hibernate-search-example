@@ -73,11 +73,11 @@ class BookDaoIntegrationSpec extends Specification {
         bookDao.purgeIndices()
     }
 
-    def "should apply facet selection"() {
+    def "should apply and remove facet selection"() {
         given:
         insertStuff()
 
-        when:
+        when: "Apply facet selection"
         def facets = bookDao.getAuthorFacets()
         def facetAppliedList = bookDao.applyFacetSelection(facets)
 
@@ -86,6 +86,12 @@ class BookDaoIntegrationSpec extends Specification {
 
         facetAppliedList[0].authors.contains(authorEntities[0])
         facetAppliedList[1].authors.contains(authorEntities[0])
+
+        when: "Remove facet selection"
+        facetAppliedList = bookDao.removeFacetSelection(facets)
+
+        then:
+        facetAppliedList.size() == bookRepository.findAll().size()
 
         cleanup:
         bookDao.purgeIndices()
