@@ -41,6 +41,7 @@ dependencies {
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	annotationProcessor 'org.projectlombok:lombok'
 	testCompile 'org.spockframework:spock-spring:1.3-groovy-2.5'
+	testCompile 'org.jeasy:easy-random-core:4.0.0'
 	testCompile 'org.codehaus.groovy:groovy-all:2.5.11'
 	testCompile 'com.github.javafaker:javafaker:0.15'
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {

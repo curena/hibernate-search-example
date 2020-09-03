@@ -7,11 +7,10 @@ import example.hibernatesearch.entity.AuthorEntity
 import example.hibernatesearch.entity.BookEntity
 import example.hibernatesearch.repository.AuthorRepository
 import example.hibernatesearch.repository.BookRepository
+import org.jeasy.random.EasyRandom
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.Specification
-
-import javax.transaction.Transactional
 
 @ContextConfiguration(classes = HibernateSearchExampleConfiguration)
 class BookDaoIntegrationSpec extends Specification {
@@ -24,9 +23,10 @@ class BookDaoIntegrationSpec extends Specification {
     @Autowired
     AuthorRepository authorRepository
 
+    Set<AuthorEntity> authorEntities
+
     def faker = Faker.instance()
 
-    @Transactional
     def "should find a book by title"() {
         given:
         def titles = insertStuff()
@@ -39,31 +39,55 @@ class BookDaoIntegrationSpec extends Specification {
         searchResults[0].title == titles[0]
     }
 
-    def "should find a book by author"() {
+    def "should get available facets"() {
+        when: "gets available facets - in the case of BookEntity it's only 'price'"
+        def availableFacets = bookDao.getAvailableFacets()
 
+        then:
+        availableFacets.size() == 2
+        availableFacets.contains("price")
+        availableFacets.contains("title")
     }
 
-    @Transactional //Must be done in a transaction in order for index to have access to it.
+    def "should get correct number of facet occurrences"() {
+        given:
+        insertStuff()
+
+        when:
+        def facets = bookDao.getAuthorFacets()
+
+        then:
+        facets.size() == 3
+        facets[0].count == 2
+        facets[0].value == authorEntities[0].name
+    }
+
     def insertStuff() {
-        AuthorEntity author = new AuthorEntity()
-        author.setName(faker.book().author())
-        authorRepository.save(author)
+        def easyRandom = new EasyRandom()
+        Set<AuthorEntity> unsavedAuthors = new HashSet<>()
+        5.times ({
+            def author = easyRandom.nextObject(AuthorEntity)
+            author.name = faker.book().author()
+            unsavedAuthors.add(author)
+        })
+
+        authorRepository.saveAll(unsavedAuthors)
+        authorEntities = authorRepository.findAll() as Set
 
         BookEntity aBook = new BookEntity()
-        def titleOne = "foo"//faker.book().title()
-        aBook.setAuthor(author)
+        def titleOne = faker.book().title()
+        aBook.setPrice(12.99)
+        aBook.setAuthors([authorEntities[0], authorEntities[1]] as Set)
         aBook.setTitle(titleOne)
 
+
         BookEntity anotherBook = new BookEntity()
-        def titleTwo = "bar"//faker.book().title()
-        anotherBook.setAuthor(author)
+        def titleTwo = faker.book().title()
+        anotherBook.setAuthors([authorEntities[2], authorEntities[0]] as Set)
+        anotherBook.setPrice(11.99)
         anotherBook.setTitle(titleTwo)
 
-
-        bookRepository.save(aBook)
-        bookRepository.save(anotherBook)
-        author.books = [aBook, anotherBook]
-        authorRepository.save(author)
+        bookRepository.saveAll([aBook, anotherBook])
 
         [titleOne, titleTwo]
     }
