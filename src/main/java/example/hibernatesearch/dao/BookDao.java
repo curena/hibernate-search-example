@@ -125,6 +125,12 @@ public class BookDao {
     return fullTextEntityManager.createFullTextQuery(luceneQuery, BookEntity.class);
   }
 
+  @Transactional
+  public void purgeIndices() {
+    FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(entityManager);
+    fullTextEntityManager.purgeAll(BookEntity.class);
+  }
+
   private FullTextQuery getJpaAllQuery() {
     FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(entityManager);
     Query query = getQueryBuilder().all().createQuery();

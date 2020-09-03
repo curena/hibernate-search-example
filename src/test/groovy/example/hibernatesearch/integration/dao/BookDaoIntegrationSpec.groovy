@@ -10,7 +10,10 @@ import example.hibernatesearch.repository.BookRepository
 import org.jeasy.random.EasyRandom
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
+import spock.lang.Shared
 import spock.lang.Specification
+
+import javax.persistence.EntityManager
 
 @ContextConfiguration(classes = HibernateSearchExampleConfiguration)
 class BookDaoIntegrationSpec extends Specification {
@@ -27,6 +30,11 @@ class BookDaoIntegrationSpec extends Specification {
 
     def faker = Faker.instance()
 
+    def cleanup() {
+        bookRepository.deleteAll()
+        authorRepository.deleteAll()
+    }
+
     def "should find a book by title"() {
         given:
         def titles = insertStuff()
@@ -40,7 +48,7 @@ class BookDaoIntegrationSpec extends Specification {
     }
 
     def "should get available facets"() {
-        when: "gets available facets - in the case of BookEntity it's only 'price'"
+        when: "gets available facets - in the case of BookEntity it's 'price' and 'title'"
         def availableFacets = bookDao.getAvailableFacets()
 
         then:
@@ -60,6 +68,9 @@ class BookDaoIntegrationSpec extends Specification {
         facets.size() == 3
         facets[0].count == 2
         facets[0].value == authorEntities[0].name
+
+        cleanup:
+        bookDao.purgeIndices()
     }
 
     def insertStuff() {
