@@ -109,6 +109,12 @@ public class BookDao {
     return facets;
   }
 
+  @Transactional
+  public void purgeIndices() {
+    FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(entityManager);
+    fullTextEntityManager.purgeAll(BookEntity.class);
+  }
+
   public Set<String> getAvailableFacets() {
     Set<String> fields = new HashSet<>();
     for (Field field : BookEntity.class.getDeclaredFields()) {
@@ -129,12 +135,6 @@ public class BookDao {
     Query query = getQueryBuilder().all().createQuery();
     return fullTextEntityManager
         .createFullTextQuery(query, BookEntity.class);
-  }
-
-  @Transactional
-  public void purgeIndices() {
-    FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(entityManager);
-    fullTextEntityManager.purgeAll(BookEntity.class);
   }
 
   private QueryBuilder getQueryBuilder() {

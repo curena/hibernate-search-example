@@ -8,14 +8,10 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
-import javax.persistence.NamedAttributeNode;
-import javax.persistence.NamedEntityGraph;
-import javax.persistence.NamedSubgraph;
 import javax.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.FetchMode;
 import org.hibernate.search.annotations.Analyze;
 import org.hibernate.search.annotations.Facet;
 import org.hibernate.search.annotations.Field;
@@ -53,10 +49,6 @@ public class BookEntity {
   // as part of owning entity. So in this case authors are indexed as part of books.
   @ManyToMany(fetch = FetchType.EAGER)
   private Set<AuthorEntity> authors;
-
-//  @Field
-//  @DateBridge(resolution = Resolution.DAY)
-//  private Date publicationDate;
 
   @Override
   public String toString() {
