@@ -52,7 +52,7 @@ public class BookDao {
     FacetSelection facetSelection = facetManager.getFacetGroup("price");
     facetSelection.selectFacets(facet);
 
-    return getJpaQueryAllBooks().getResultList();
+    return searchAllBooks();
   }
 
   @Transactional(readOnly = true)
@@ -61,7 +61,7 @@ public class BookDao {
     FacetSelection facetSelection = facetManager.getFacetGroup("price");
     facets.forEach(facetSelection::deselectFacets);
 
-    return getJpaQueryAllBooks().getResultList();
+    return searchAllBooks();
   }
 
   @Transactional(readOnly = true)
