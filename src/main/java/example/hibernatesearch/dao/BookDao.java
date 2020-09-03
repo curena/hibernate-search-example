@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.search.Query;
 import org.hibernate.search.jpa.FullTextEntityManager;
@@ -19,10 +18,12 @@ import org.hibernate.search.query.facet.Facet;
 import org.hibernate.search.query.facet.FacetSelection;
 import org.hibernate.search.query.facet.FacetingRequest;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @Slf4j
 public class BookDao {
+
   @PersistenceContext
   private EntityManager entityManager;
 
@@ -41,26 +42,26 @@ public class BookDao {
 
   @Transactional(readOnly = true)
   public List<BookEntity> searchAllBooks() {
-    return getJpaAllQuery().getResultList();
+    return getJpaQueryAllBooks().getResultList();
   }
 
   @Transactional(readOnly = true)
   public List<BookEntity> applyFacetSelection(List<Facet> facets) {
     Facet facet = facets.get(0);
-    FacetManager facetManager = getJpaAllQuery().getFacetManager();
+    FacetManager facetManager = getJpaQueryAllBooks().getFacetManager();
     FacetSelection facetSelection = facetManager.getFacetGroup("price");
     facetSelection.selectFacets(facet);
 
-    return getJpaAllQuery().getResultList();
+    return getJpaQueryAllBooks().getResultList();
   }
 
   @Transactional(readOnly = true)
   public List<BookEntity> removeFacetSelection(List<Facet> facets) {
-    FacetManager facetManager = getJpaAllQuery().getFacetManager();
+    FacetManager facetManager = getJpaQueryAllBooks().getFacetManager();
     FacetSelection facetSelection = facetManager.getFacetGroup("price");
     facets.forEach(facetSelection::deselectFacets);
 
-    return getJpaAllQuery().getResultList();
+    return getJpaQueryAllBooks().getResultList();
   }
 
   @Transactional(readOnly = true)
@@ -71,7 +72,7 @@ public class BookDao {
         .discrete()
         .createFacetingRequest();
 
-    FacetManager facetManager = getJpaAllQuery().getFacetManager();
+    FacetManager facetManager = getJpaQueryAllBooks().getFacetManager();
     facetManager.enableFaceting(titleFacetingRequest);
     List<Facet> facets = facetManager.getFacets("titleFacetingRequest");
     facets.forEach(facet -> log.info("{} - {}", facet.getValue(), facet.getCount()));
@@ -86,7 +87,7 @@ public class BookDao {
         .discrete()
         .createFacetingRequest();
 
-    FacetManager facetManager = getJpaAllQuery().getFacetManager();
+    FacetManager facetManager = getJpaQueryAllBooks().getFacetManager();
     facetManager.enableFaceting(authorFacetingRequest);
 
     return facetManager.getFacets("authorFacetingRequest");
@@ -101,7 +102,7 @@ public class BookDao {
         .from(10.0D).to(20.0D)
         .createFacetingRequest();
 
-    FacetManager facetManager = getJpaAllQuery().getFacetManager();
+    FacetManager facetManager = getJpaQueryAllBooks().getFacetManager();
     facetManager.enableFaceting(priceFacetingRequest);
     List<Facet> facets = facetManager.getFacets("priceFacetingRequest");
     facets.forEach(facet -> log.info("{} - {}", facet.getValue(), facet.getCount()));
@@ -119,22 +120,21 @@ public class BookDao {
   }
 
   private FullTextQuery getJpaQuery(org.apache.lucene.search.Query luceneQuery) {
-
     FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(entityManager);
-
     return fullTextEntityManager.createFullTextQuery(luceneQuery, BookEntity.class);
+  }
+
+  private FullTextQuery getJpaQueryAllBooks() {
+    FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(entityManager);
+    Query query = getQueryBuilder().all().createQuery();
+    return fullTextEntityManager
+        .createFullTextQuery(query, BookEntity.class);
   }
 
   @Transactional
   public void purgeIndices() {
     FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(entityManager);
     fullTextEntityManager.purgeAll(BookEntity.class);
-  }
-
-  private FullTextQuery getJpaAllQuery() {
-    FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(entityManager);
-    Query query = getQueryBuilder().all().createQuery();
-    return fullTextEntityManager.createFullTextQuery(query, BookEntity.class);
   }
 
   private QueryBuilder getQueryBuilder() {

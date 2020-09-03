@@ -3,14 +3,19 @@ package example.hibernatesearch.entity;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.NamedAttributeNode;
+import javax.persistence.NamedEntityGraph;
+import javax.persistence.NamedSubgraph;
 import javax.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.FetchMode;
 import org.hibernate.search.annotations.Analyze;
 import org.hibernate.search.annotations.Facet;
 import org.hibernate.search.annotations.Field;
@@ -27,6 +32,7 @@ import org.hibernate.search.bridge.builtin.DoubleBridge;
 @EqualsAndHashCode(of = "id")
 @Table(name = "book")
 public class BookEntity {
+
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private long id;
@@ -45,7 +51,7 @@ public class BookEntity {
 
   @IndexedEmbedded //Used in ManyToMany and *ToOne relations to allow Lucene to index these
   // as part of owning entity. So in this case authors are indexed as part of books.
-  @ManyToMany
+  @ManyToMany(fetch = FetchType.EAGER)
   private Set<AuthorEntity> authors;
 
 //  @Field

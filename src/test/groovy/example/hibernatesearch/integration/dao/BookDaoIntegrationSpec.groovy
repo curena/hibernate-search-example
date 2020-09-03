@@ -73,6 +73,24 @@ class BookDaoIntegrationSpec extends Specification {
         bookDao.purgeIndices()
     }
 
+    def "should apply facet selection"() {
+        given:
+        insertStuff()
+
+        when:
+        def facets = bookDao.getAuthorFacets()
+        def facetAppliedList = bookDao.applyFacetSelection(facets)
+
+        then:
+        facetAppliedList.size() == 2
+
+        facetAppliedList[0].authors.contains(authorEntities[0])
+        facetAppliedList[1].authors.contains(authorEntities[0])
+
+        cleanup:
+        bookDao.purgeIndices()
+    }
+
     def insertStuff() {
         def easyRandom = new EasyRandom()
         Set<AuthorEntity> unsavedAuthors = new HashSet<>()
