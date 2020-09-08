@@ -35,29 +35,30 @@ public class BookDao {
         .sentence(title)
         .createQuery();
     log.info(keywordQuery.toString());
-    List<BookEntity> results = getJpaQuery(keywordQuery).getResultList();
+    List<BookEntity> results = getWrappedJpaQueryFor(keywordQuery).getResultList();
 
     return results;
   }
 
   @Transactional(readOnly = true)
   public List<BookEntity> searchAllBooks() {
-    return getJpaQueryAllBooks().getResultList();
+    return getWrappedJpaQueryForAllBooks().getResultList();
   }
 
   @Transactional(readOnly = true)
   public List<BookEntity> applyFacetSelection(List<Facet> facets) {
-    Facet facet = facets.get(0);
-    FacetManager facetManager = getJpaQueryAllBooks().getFacetManager();
-    FacetSelection facetSelection = facetManager.getFacetGroup("price");
-    facetSelection.selectFacets(facet);
+    FacetManager facetManager = getWrappedJpaQueryForAllBooks().getFacetManager();
+    for (Facet facet : facets) {
+      FacetSelection facetSelection = facetManager.getFacetGroup(facet.getFacetingName());
+      facetSelection.selectFacets(facet);
+    }
 
     return searchAllBooks();
   }
 
   @Transactional(readOnly = true)
   public List<BookEntity> removeFacetSelection(List<Facet> facets) {
-    FacetManager facetManager = getJpaQueryAllBooks().getFacetManager();
+    FacetManager facetManager = getWrappedJpaQueryForAllBooks().getFacetManager();
     FacetSelection facetSelection = facetManager.getFacetGroup("price");
     facets.forEach(facetSelection::deselectFacets);
 
@@ -72,7 +73,7 @@ public class BookDao {
         .discrete()
         .createFacetingRequest();
 
-    FacetManager facetManager = getJpaQueryAllBooks().getFacetManager();
+    FacetManager facetManager = getWrappedJpaQueryForAllBooks().getFacetManager();
     facetManager.enableFaceting(titleFacetingRequest);
     List<Facet> facets = facetManager.getFacets("titleFacetingRequest");
     facets.forEach(facet -> log.info("{} - {}", facet.getValue(), facet.getCount()));
@@ -87,7 +88,7 @@ public class BookDao {
         .discrete()
         .createFacetingRequest();
 
-    FacetManager facetManager = getJpaQueryAllBooks().getFacetManager();
+    FacetManager facetManager = getWrappedJpaQueryForAllBooks().getFacetManager();
     facetManager.enableFaceting(authorFacetingRequest);
 
     return facetManager.getFacets("authorFacetingRequest");
@@ -102,7 +103,7 @@ public class BookDao {
         .from(10.0D).to(20.0D)
         .createFacetingRequest();
 
-    FacetManager facetManager = getJpaQueryAllBooks().getFacetManager();
+    FacetManager facetManager = getWrappedJpaQueryForAllBooks().getFacetManager();
     facetManager.enableFaceting(priceFacetingRequest);
     List<Facet> facets = facetManager.getFacets("priceFacetingRequest");
     facets.forEach(facet -> log.info("{} - {}", facet.getValue(), facet.getCount()));
@@ -125,12 +126,12 @@ public class BookDao {
     return fields;
   }
 
-  private FullTextQuery getJpaQuery(org.apache.lucene.search.Query luceneQuery) {
+  private FullTextQuery getWrappedJpaQueryFor(org.apache.lucene.search.Query luceneQuery) {
     FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(entityManager);
     return fullTextEntityManager.createFullTextQuery(luceneQuery, BookEntity.class);
   }
 
-  private FullTextQuery getJpaQueryAllBooks() {
+  private FullTextQuery getWrappedJpaQueryForAllBooks() {
     FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(entityManager);
     Query query = getQueryBuilder().all().createQuery();
     return fullTextEntityManager
